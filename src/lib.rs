@@ -11,6 +11,7 @@ mod lsr;
 mod mcr;
 mod msr;
 mod rbr_thr;
+mod usr;
 
 use core::cell::UnsafeCell;
 
@@ -70,7 +71,11 @@ pub struct LSR<R: Register>(UnsafeCell<R>);
 /// 调制解调器状态寄存器。
 pub struct MSR<R: Register>(UnsafeCell<R>);
 
+/// 串口控制设置寄存器。
+pub struct USR<R: Register>(UnsafeCell<R>);
+
 /// 工作状态的 uart16550 数据结构。
+#[repr(C)]
 pub struct Uart16550<R: Register> {
     rbr_thr: RBR_THR<R>, // offset = 0(0x00)
     ier: IER<R>,         // offset = 1(0x04)
@@ -79,6 +84,8 @@ pub struct Uart16550<R: Register> {
     mcr: MCR<R>,         // offset = 4(0x10)
     lsr: LSR<R>,         // offset = 5(0x14)
     msr: MSR<R>,         // offset = 6(0x18)
+    _reserved0: [R; 24],
+    usr: USR<R>, // offset = 31(0x7c)
 }
 
 impl<R: Register> Uart16550<R> {
@@ -122,6 +129,12 @@ impl<R: Register> Uart16550<R> {
     #[inline]
     pub fn msr(&self) -> &MSR<R> {
         &self.msr
+    }
+
+    /// 取出串口控制设置寄存器。
+    #[inline]
+    pub fn usr(&self) -> &USR<R> {
+        &self.usr
     }
 
     /// 将分频系数写入锁存器。
